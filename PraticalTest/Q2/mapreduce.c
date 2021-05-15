@@ -29,12 +29,12 @@ int main(int argc, char* argv[]) {
 
 	int m = parseIntFromString(argv[2]),
 		k = parseIntFromString(argv[3]),
-		pipes[2][2],
+		pipes[m][2],
 		i;
 
 	printf("\tn= %d\tm= %d\tk= %d\n", n, m, k);
 
-	for (i = m-1; i >= 0; i--) {
+	for (i = 0; i < m; i++) {
 		if( (pid = fork()) < 0 ){
 			perror("fork error");
 			exit(EXIT_FAILURE);
@@ -43,15 +43,15 @@ int main(int argc, char* argv[]) {
 			perror("pipe error");
 			exit(EXIT_FAILURE);
 		}
-		if (pid > 0) {		// parent closes READ
-			close(pipes[READ_END][READ_END]);
+		if (pid == 0) {		// child closes READ
+			close(pipes[i][READ_END]);
 			break;
 		}
-		close(pipes[i][WRITE_END]);	// child closes WRITE
+		close(pipes[i][WRITE_END]);	// parent closes WRITE
 	}
 
 	int result = 0, cur;
-	if(pid > 0) {	// parent processing
+	if(pid == 0) {	// child processing
 
 		printf("child= %d\n", pid);
 
@@ -77,7 +77,12 @@ int main(int argc, char* argv[]) {
 		}
 		exit(EXIT_SUCCESS);
 	}
-			// parent processinh
+			// parent processing
+	for (i = 0; i < m; i++)
+		if( wait(NULL) < 0 ) {
+			perror("Unable to catch child");
+			exit(EXIT_FAILURE);
+		}
 
 	printf("parent= %d\ti= %d\n", pid, i);
 
