@@ -77,12 +77,7 @@ int main(int argc, char* argv[]) {
 		}
 		exit(EXIT_SUCCESS);
 	}
-			// parent processing
-	for (i = 0; i < m; i++)
-		if( wait(NULL) < 0 ) {
-			perror("Unable to catch child");
-			exit(EXIT_FAILURE);
-		}
+			// parent processinh
 
 	printf("parent= %d\ti= %d\n", pid, i);
 
