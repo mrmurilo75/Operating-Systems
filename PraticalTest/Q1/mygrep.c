@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 typedef struct {
 	int length;
@@ -9,21 +10,38 @@ typedef struct {
 
 
 int grep(FILE* file, String* toFind) {
-	char read = 1;
-	int line, col, cc = '\0', prev = cc;
+	int line, col, first, cc = '\0', prev = cc;
 
-	for(line = 1; cc != EOF; line++) {
-		for(col = 1; cc != '\n' && cc != EOF; prev = cc, (read? cc = fgetc(file) : continue), col++ ) {
-			read = 1;
+	for(line = 1; cc != EOF; line++, cc= fgetc(file)) {
+		col = 1;
+		first = 1;
+		while(cc != EOF && cc != '\n') {
+
 			if(isspace(prev) && cc == toFind->value[0]) {
-				read = 0;
-				colCandidate = col;
-				int i = 0;
-				for(i = 1; i < toFind->length && (cc = fgetc(file)) == toFind->value; i++, col++);
-				if(i == toFind->length && isspace(cc = fgetc(file)))
-					prinf("[ %d: %d]\n", line, col);
+				int colCandidate = col;
+				int i = 1;
+
+				for(i = 1; i < toFind->length && (cc = fgetc(file)) == toFind->value[i]; i++, col++);
+
+				if(i == toFind->length && isspace( (cc = fgetc(file)) )) {
+					col++;
+
+					if(first) {
+						printf("[ %d: ", line);
+						first = 0;
+					} else 
+						printf(", ");
+					printf("%d", colCandidate);
+				}
 			}
+
+			prev = cc;
+			if(cc != '\n')
+				cc = fgetc(file);
+			col++;
 		}
+		if(!first)
+			printf("]\n");
 	}
 
 	return 0;
@@ -38,15 +56,22 @@ String* newString(char* value) {
 	return result;
 }
 
-int main(int argc, char*[] argv){
+int main(int argc, char** argv){
 	if(argc != 3) {
-		returnError(0); 	// wrong number of arguments
+		printf("wrong number of arguments\n");
+		return 1;
+	}
 
 	FILE* file = fopen(argv[2], "r");
-	if(file == NULL)
-		returnError(1); 	// unable to open file
+
+	if(file == NULL) {
+		printf("unable to open file\n");
+		return 2;
+	}
 
 	String* toFind = newString(argv[1]);
+
+	file = fopen(argv[2], "r");
 
 	return grep(file, toFind);
 }
