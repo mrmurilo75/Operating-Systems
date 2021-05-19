@@ -73,8 +73,6 @@ int main(int argc, char* argv[]) {
 
 //		printf("\tresult= %d\n", result);
 
-		/* child writes to pipe */
-
 		if(write(pipes[i][WRITE_END], &result, sizeof(int)*sizeof(char)) < 0) {
 			perror("Unable to write to pipe");
 			exit(EXIT_FAILURE);
@@ -88,7 +86,6 @@ int main(int argc, char* argv[]) {
 
 	int nbytes, current = 0;
 
-	/* parent reads from pipe */
 	for(i = 0, result = 0; i < m; i++) {
 		close(pipes[i][WRITE_END]);
 
@@ -98,96 +95,21 @@ int main(int argc, char* argv[]) {
 		}
 		close(pipes[i][READ_END]);                 
 
-//		write(STDOUT_FILENO, line, nbytes);
-		//result+=parseIntFromString(line);
 		result+=current;
-
 	}
 
 	printf("%d\n", result);
 
-	/* wait for child and exit */
 	for(int i =0; i <m; i++)
-		if ( wait(NULL) < 0) {
+		if(wait(NULL) < 0) {
 			fprintf(stderr, "Unable to catch child exiting: %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
-	/* return gracefully */
 	exit(EXIT_SUCCESS);
  
 }
 
-/*
-	for (i = 0; i < m; i++) {
-		if( (pid = fork()) < 0 ){
-			perror("fork error");
-			exit(EXIT_FAILURE);
-		}
-		if( pipe(pipes[i]) < 0 ) {
-			perror("pipe error");
-			exit(EXIT_FAILURE);
-		}
-		if (pid == 0) {		// child closes READ
-			close(pipes[i][READ_END]);
-			break;
-		}
-		close(pipes[i][WRITE_END]);	// parent closes WRITE
-	}
-
-	int result = 0, cur;
-	if(pid == 0) {	// child processing
-
-		printf("child= %d\n", pid);
-
-		for(int j = 0; j < n; j++) {
-
-			printf("\ti= %d\tj%%m= %d\n", i, j%m);
-
-			if(j % m == i)
-				for(int e = 0; e < n; e++)
-					if(matriz[j][e] > k) {
-						printf("\telem= %d\n", matriz[j][e]);
-						result++;
-					}
-		}
-
-		printf("\tresult= %d\n", result);
-
-		if(write(pipes[i][WRITE_END],
-				&result, 
-				sizeof(int)) < 0) {
-			perror("Failed to write to pipe");
-			exit(EXIT_FAILURE);
-		}
-		exit(EXIT_SUCCESS);
-	}
-			// parent processing
-	for (i = 0; i < m; i++)
-		if( wait(NULL) < 0 ) {
-			perror("Unable to catch child");
-			exit(EXIT_FAILURE);
-		}
-
-	printf("parent= %d\ti= %d\n", pid, i);
-
-	for (i = 0, cur = 0; i < m; i++) {
-		if ( read(pipes[i][READ_END],
-				&cur,
-				sizeof(int)) < 0 ) {
-			perror("Failed to read pipe");
-			exit(EXIT_FAILURE);
-		}
-
-		printf("\ti= %d\tcur= %d\n", i, cur);
-
-		result += cur;
-	}
-
-	printf("%d\n", result);
-	exit(EXIT_SUCCESS);
-}
-*/
 
 int parseIntFromFile(FILE* file) {
 	if(file == NULL)
